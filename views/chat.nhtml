@@ -6,6 +6,19 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="theme-color" content="#111111">
   <title>@titre — Conversations</title>
+  <meta name="description" content="Noliae IA : un espace conversationnel multi-modèles relié au Core Noliae.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <link rel="canonical" href="https://ia.noliae.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="fr_FR">
+  <meta property="og:site_name" content="Noliae IA">
+  <meta property="og:title" content="Noliae IA — Une pensée, plusieurs voix">
+  <meta property="og:description" content="Un espace conversationnel multi-modèles relié au Core Noliae.">
+  <meta property="og:url" content="https://ia.noliae.com/">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Noliae IA — Une pensée, plusieurs voix">
+  <meta name="twitter:description" content="Un espace conversationnel multi-modèles relié au Core Noliae.">
+  <script type="application/ld+json">{"@@context":"https://schema.org","@@type":"WebApplication","name":"Noliae IA","url":"https://ia.noliae.com/","applicationCategory":"BusinessApplication","operatingSystem":"Web"}</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/static/noliae.css">

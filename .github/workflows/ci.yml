@@ -12,4 +12,6 @@ jobs:
           docker run -d --name ia-web -p 8082:8080 noliae-ia
           for i in $(seq 1 20); do curl -fsS http://localhost:8082/ && break || sleep 1; done
           curl -fsS http://localhost:8082/api/health | grep -q 'nolc'
+          curl -fsS http://localhost:8082/robots.txt | grep -q 'Sitemap'
+          curl -fsS http://localhost:8082/sitemap.xml | grep -q 'ia.noliae.com'
           docker rm -f ia-web
