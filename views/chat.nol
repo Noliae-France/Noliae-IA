@@ -1,0 +1,15 @@
+fn vue_chat(titre: Text, message: Text, answer: Text) -> Text {
+    var _o = ""
+    _o += "<!doctype html><html lang=\"fr\"><head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>"
+    _o += html_escape(titre)
+    _o += "</title><link rel=\"stylesheet\" href=\"/static/noliae.css\"></head><body><header><a class=\"brand\" href=\"/\"><span>▂▅█▇█▅▂</span> noliae <b>ia</b></a><a href=\"https://noliae.com\">Search</a></header><main><aside><p>ESPACES</p><a class=\"active\" href=\"/\">✦ Nouvelle discussion</a><a href=\"#\">◷ Aujourd’hui</a><a href=\"#\">◇ Explorer les modèles</a><small><i></i> Core connecté<br>Vos données restent dans Noliae.</small></aside><section><div class=\"welcome\"><p class=\"cap\"><i></i> Noliae IA</p><h1>Une pensée,<br><em>plusieurs voix.</em></h1><p>Choisissez un modèle et discutez avec l’IA depuis votre espace Noliae.</p></div><div class=\"conversation\">"
+    if message != "" {
+    _o += "<article class=\"user\"><small>Vous</small><p>"
+    _o += html_escape(message)
+    _o += "</p></article><article><small>Noliae IA</small><p>"
+    _o += html_escape(answer)
+    _o += "</p></article>"
+    }
+    _o += "</div><form action=\"/discussion\" method=\"post\"><textarea name=\"message\" placeholder=\"Écrivez votre message…\" required></textarea><footer><select name=\"model\"><option>ChatGPT · gpt-4o-mini</option><option>Mistral · Small</option><option>Claude · Sonnet</option><option>Gemini · Flash</option></select><button>Envoyer <b>↑</b></button></footer></form></section></main><div class=\"legal\">© Noliae · Les réponses peuvent contenir des erreurs. Vérifiez les informations importantes.</div></body></html>\n"
+    return _o
+}

@@ -1,20 +1,15 @@
-name: IA Frontend CI
+name: IA Nolc CI
 on: {push: {branches: [main]}, pull_request: {branches: [main]}}
 jobs:
   verify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Check Core integration contract
-        run: |
-          grep -q 'NOLIAE_API_BASE' config.js.template
-          grep -q '/v1/ia/' app.js
-          grep -q '#ff4d2e' styles.css
-      - name: Build image
+      - name: Build Nolc image
         run: docker build -t noliae-ia .
-      - name: Smoke test
+      - name: Smoke test MVC routes
         run: |
-          docker run -d --name ia-front -p 8082:8080 -e NOLIAE_API_BASE=https://api.noliae.com noliae-ia
-          for i in $(seq 1 15); do curl -fsS http://localhost:8082/ && break || sleep 1; done
-          curl -fsS http://localhost:8082/config.js | grep -q 'api.noliae.com'
-          docker rm -f ia-front
+          docker run -d --name ia-web -p 8082:8080 noliae-ia
+          for i in $(seq 1 20); do curl -fsS http://localhost:8082/ && break || sleep 1; done
+          curl -fsS http://localhost:8082/api/health | grep -q 'nolc'
+          docker rm -f ia-web

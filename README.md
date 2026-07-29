@@ -1,14 +1,17 @@
 # Noliae IA
 
-Interface conversationnelle de `ia.noliae.com`, écrite en HTML/CSS/JavaScript
-sans Node.js. Elle applique la charte Pulse de Noliae et délègue toutes les
-requêtes au [NolCore API](https://github.com/Noliae-France/NolCore-API).
+Interface MVC de `ia.noliae.com`, écrite entièrement en **Nolc** : routeur et
+contrôleurs `.nol`, vues serveur `.nhtml`, assets CSS de la charte Noliae.
 
 ```sh
-docker build -t noliae-ia .
-docker run --rm -p 8082:8080 -e NOLIAE_API_BASE=https://api.noliae.com noliae-ia
+nolc nhtml views/chat.nhtml
+nolc check main.nol
+docker build -t noliae-ia-web .
+docker run --rm -p 8080:8080 noliae-ia-web
 ```
 
-Configurez le proxy de `ia.noliae.com` vers le conteneur et exposez le Core à
-une URL API compatible CORS/cookies. La CI construit et smoke-teste l’image
-GHCR à chaque push.
+Routes : `/`, `POST /discussion`, `GET /api/health`. La CI compile les vues et
+le binaire Nolc, puis publie `ghcr.io/noliae-france/noliae-ia-web:main`.
+Le raccordement API réel se fait via le NolCore derrière l’Ingress de
+`ia.noliae.com`, afin de conserver une session first-party. Le manifeste
+`deploy/k8s.yaml` livre le Deployment, Service et Ingress du sous-domaine.
