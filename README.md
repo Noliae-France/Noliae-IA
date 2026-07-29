@@ -42,6 +42,10 @@ Le contrôleur discussion est le point d’intégration vers
 sessions et délègue ensuite à [NolCore-IA](https://github.com/Noliae-France/NolCore-IA).
 Les tokens Claude, ChatGPT, Mistral et Gemini ne passent jamais dans cette UI.
 
+Le catalogue de modèles est fourni par `GET /v1/ia/models` via le Core ; l’UI
+ne déclare aucun modèle ni tarif fictif. Les conversations et quotas restent
+des responsabilités du Core et de PostgreSQL.
+
 ## Développement
 
 ```sh
