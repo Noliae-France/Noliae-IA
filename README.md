@@ -67,6 +67,12 @@ Le manifeste Kubernetes déploie deux réplicas, un Service et l’Ingress
 `ia.noliae.com`. Le DNS, le TLS et le proxy vers NolCore sont configurés dans
 l’infrastructure de production qui héberge le domaine.
 
+## Navigation multi-domaines
+
+Les destinations Search, Account, Login et Register sont calculées depuis le
+hostname actif. Une préproduction `ia.beta.noliae.com` reste ainsi dans
+`*.beta.noliae.com` sans lien codé en dur vers la production.
+
 ## CI/CD lié au Core
 
 La CI compile les `.nhtml`, construit l’image native et smoke-teste la route de
