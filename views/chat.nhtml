@@ -48,22 +48,12 @@
     .iconbtn{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);transition:background var(--t)}
     .iconbtn:hover{background:var(--bubble)}
     .iconbtn svg{width:18px;height:18px}
-    .mpick{position:relative}
-    .mpick .cur{display:flex;align-items:center;gap:9px;padding:7px 11px 7px 10px;border:1px solid var(--line);border-radius:100px;font-size:13.5px;font-weight:500;transition:border-color var(--t)}
-    .mpick .cur:hover{border-color:var(--ash)}
-    .mpick .cur .cv{width:15px;height:15px;color:var(--ash);transition:transform var(--t)}
-    .mpick.open .cur .cv{transform:rotate(180deg)}
     .logo{width:19px;height:19px;flex-shrink:0;display:block;border-radius:5px}
-    .menu{position:absolute;top:calc(100% + 8px);left:0;width:288px;background:var(--paper-2);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 34px rgba(0,0,0,.13);padding:6px;opacity:0;transform:translateY(-6px) scale(.98);pointer-events:none;transition:opacity var(--t),transform var(--t);z-index:30}
-    .mpick.open .menu{opacity:1;transform:none;pointer-events:auto}
-    .mopt{display:flex;align-items:center;gap:11px;padding:10px;border-radius:9px;cursor:pointer;transition:background var(--t)}
-    .mopt:hover{background:var(--bubble)}
-    .mopt .logo{width:26px;height:26px;border-radius:7px}
-    .mopt .tx{flex:1;min-width:0}
-    .mopt .nm{font-size:13.5px;font-weight:500}
-    .mopt .ds{font-size:11.5px;color:var(--ash);margin-top:1px}
-    .mopt .ck{width:16px;height:16px;color:var(--ink);opacity:0;flex-shrink:0}
-    .mopt.on .ck{opacity:1}
+    .providers{display:flex;flex-wrap:wrap;gap:7px;margin-top:9px}
+    .provider{display:flex;align-items:center;gap:7px;padding:7px 12px 7px 8px;border:1px solid var(--line);border-radius:100px;font-size:12.5px;font-weight:500;background:var(--paper-2);color:var(--muted);transition:border-color var(--t),color var(--t),background var(--t)}
+    .provider:hover{border-color:var(--ash);color:var(--ink)}
+    .provider.on{border-color:var(--ink);background:var(--ink);color:#fff}
+    .provider .logo{width:17px;height:17px}
     .scroll{flex:1;overflow-y:auto}
     .stage{width:100%;max-width:720px;margin:0 auto;padding:0 24px;min-height:100%;display:flex;flex-direction:column}
     .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-bottom:8vh}
@@ -130,10 +120,6 @@
   <div class="main">
     <div class="top">
       <button class="iconbtn" id="toggle" title="Masquer l'historique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16"></path></svg></button>
-      <div class="mpick" id="mpick">
-        <button class="cur" id="mcur">Chargement…</button>
-        <div class="menu" id="mmenu"></div>
-      </div>
     </div>
 
     <div class="scroll" id="scroll">
@@ -159,6 +145,7 @@
           <textarea id="ta" rows="1" placeholder="Écrivez votre question…" disabled></textarea>
           <button class="send" id="send" disabled type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20V5M6 11l6-6 6 6"></path></svg></button>
         </div>
+        <div class="providers" id="providers"></div>
         <div class="foot" id="foot">Noliae AI peut se tromper · vérifiez les informations importantes.</div>
       </div>
     </div>
@@ -180,7 +167,10 @@ const LOGOS={
 const DEFAULT_LOGO='<svg class="logo" viewBox="0 0 40 40"><rect width="40" height="40" rx="9" fill="#111"/><path fill="#FF4D2E" d="M12 20c.2-4 3.4-7.2 8-7.4-2.6 1.5-4.2 4.3-4.3 7.4.1 3.1 1.7 5.9 4.3 7.4-4.6-.2-7.8-3.4-8-7.4Z"/></svg>';
 const logoFor=provider=>LOGOS[provider]||DEFAULT_LOGO;
 
-let MODELS=[],curModel=null;
+let MODELS=[],curModel=null,PROVIDERS=[];
+// Ordre de préférence par coût (les moins chers en tête) : le premier
+// fournisseur DISPONIBLE de cette liste devient le choix par défaut.
+const ORDRE_ECONOMIQUE=['mistral','gemini','chatgpt','claude'];
 
 const KEY='noliae_ai_chats_v1';
 let chats=JSON.parse(localStorage.getItem(KEY)||'[]');
@@ -188,16 +178,19 @@ let activeId=null,busy=false;
 function save(){localStorage.setItem(KEY,JSON.stringify(chats))}
 function active(){return chats.find(c=>c.id===activeId)}
 
-const mpick=document.getElementById('mpick'),mcur=document.getElementById('mcur'),mmenu=document.getElementById('mmenu');
-function renderPicker(){
-  if(!curModel)return;
-  mcur.innerHTML=logoFor(curModel.provider)+'<span>'+esc(curModel.label||curModel.provider)+'</span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m6 9 6 6 6-6"/></svg>';
-  mmenu.innerHTML=MODELS.map((m,i)=>'<div class="mopt '+(m===curModel?'on':'')+'" data-i="'+i+'">'+logoFor(m.provider)+'<div class="tx"><div class="nm">'+esc(m.label||m.provider)+'</div><div class="ds">'+esc(m.model)+'</div></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-9"/></svg></div>').join('');
-  mmenu.querySelectorAll('.mopt').forEach(o=>o.addEventListener('click',()=>{curModel=MODELS[+o.dataset.i];renderPicker();mpick.classList.remove('open')}));
+const providersEl=document.getElementById('providers');
+// Une pastille par FOURNISSEUR (pas par modèle : la liste complète peut
+// compter des dizaines de variantes) — le premier modèle de chaque
+// fournisseur est déjà son choix « courant » (voir ia_modele_prioritaire
+// côté serveur), donc directement utilisable ici.
+function calculerProviders(){
+  const vus=new Set();
+  PROVIDERS=MODELS.filter(m=>{if(vus.has(m.provider))return false;vus.add(m.provider);return true});
 }
-mcur.addEventListener('click',e=>{e.stopPropagation();mpick.classList.toggle('open')});
-document.addEventListener('click',()=>mpick.classList.remove('open'));
-mmenu.addEventListener('click',e=>e.stopPropagation());
+function renderProviders(){
+  providersEl.innerHTML=PROVIDERS.map(m=>'<button type="button" class="provider '+(m===curModel?'on':'')+'" data-provider="'+esc(m.provider)+'">'+logoFor(m.provider)+'<span>'+esc(m.label||m.provider)+'</span></button>').join('');
+  providersEl.querySelectorAll('.provider').forEach(b=>b.addEventListener('click',()=>{curModel=PROVIDERS.find(m=>m.provider===b.dataset.provider);renderProviders()}));
+}
 
 document.getElementById('toggle').addEventListener('click',()=>document.getElementById('app').classList.toggle('collapsed'));
 function renderConvs(){
@@ -262,7 +255,10 @@ fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0
   const data=await r.json().catch(()=>[]);
   MODELS=Array.isArray(data)?data:(Array.isArray(data.models)?data.models:[]);
   if(!MODELS.length)throw 0;
-  curModel=MODELS[0];renderPicker();
+  calculerProviders();
+  const parEconomie=ORDRE_ECONOMIQUE.map(p=>PROVIDERS.find(m=>m.provider===p)).find(Boolean);
+  curModel=parEconomie||PROVIDERS[0];
+  renderProviders();
   ta.disabled=false;renderConvs();
 }).catch(()=>{ if(!MODELS.length){ goLogin(); } });
 })();
