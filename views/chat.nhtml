@@ -151,12 +151,12 @@
     @@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
     .dock{flex-shrink:0;padding:4px 20px 10px;background:linear-gradient(to top,var(--paper) 66%,transparent)}
     .composer{width:100%;max-width:920px;margin:0 auto}
-    .composer-card{background:var(--paper-2);border:1px solid var(--line);border-radius:20px;padding:12px 14px 10px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:border-color var(--t),box-shadow var(--t)}
+    .composer-card{background:var(--paper-2);border:1px solid var(--line);border-radius:20px;padding:14px 16px 12px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:border-color var(--t),box-shadow var(--t)}
     .composer-card:focus-within{border-color:var(--ash);box-shadow:0 6px 20px rgba(0,0,0,.07)}
     .tools-left .ic{width:22px;height:22px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--ash);flex-shrink:0;transition:background var(--t),color var(--t)}
     .tools-left .ic:hover{background:var(--bubble);color:var(--muted)}
     .tools-left .ic svg{width:13px;height:13px;display:block}
-    textarea{width:100%;display:block;resize:none;border:0;outline:0;background:none;font-size:14px;font-family:var(--sans);line-height:1.25;padding:0 2px;max-height:100px;color:var(--ink);color-scheme:light;-webkit-text-fill-color:var(--ink)}
+    textarea{width:100%;display:block;resize:none;border:0;outline:0;background:none;font-size:14.5px;font-family:var(--sans);line-height:1.5;padding:2px 2px;min-height:26px;max-height:120px;color:var(--ink);color-scheme:light;-webkit-text-fill-color:var(--ink)}
     textarea::placeholder{color:var(--ash)}
     .composer-toolbar .send{width:24px;height:24px;padding:0;border-radius:50%;background:var(--solid-bg);color:var(--solid-fg);display:grid;place-items:center;flex-shrink:0;transition:opacity var(--t),transform var(--t),background var(--t)}
     .send:not(:disabled):hover{background:var(--pulse)}
