@@ -248,7 +248,7 @@ async function submit(){
     ch.convId=data.conversation_id||ch.convId;
     ch.msgs.push({role:'assistant',content:data.answer||'',provider});save();
     body.innerHTML='<div class="who">'+esc(curModel.label||curModel.provider)+'</div>'+md(data.answer||'Aucune réponse reçue.');
-  }catch(e){body.innerHTML='<p style="color:var(--pulse)">'+esc((e&&e.detail)||'Une erreur est survenue. Réessayez dans un instant.')+'</p>'}
+  }catch(e){body.innerHTML='<p style="color:var(--pulse)">'+esc((e instanceof TypeError)?'La connexion à nos serveurs semble bloquée par une extension (bloqueur de publicités/traceurs). Désactive-la pour ce site, ou essaie en navigation privée, puis réessaie.':((e&&e.detail)||'Une erreur est survenue. Réessayez dans un instant.'))+'</p>'}
   scroll.scrollTop=scroll.scrollHeight;
   busy=false;send.disabled=!ta.value.trim();ta.focus()
 }
