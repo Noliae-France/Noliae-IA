@@ -52,6 +52,19 @@
     .iconbtn:hover{background:var(--bubble)}
     .iconbtn svg{width:18px;height:18px;display:block}
     .cur-model{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--muted)}
+    .top{position:relative}
+    .share-btn{margin-left:auto;display:flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--line);border-radius:100px;font-size:12.5px;font-weight:500;color:var(--muted);transition:border-color var(--t),color var(--t),background var(--t)}
+    .share-btn:hover{border-color:var(--ash);color:var(--ink);background:var(--bubble)}
+    .share-btn.on{border-color:var(--pulse);color:var(--pulse);background:#FFF4F1}
+    .share-btn svg{width:14px;height:14px}
+    .share-pop{position:absolute;top:48px;right:16px;z-index:50;width:300px;background:var(--paper-2);border:1px solid var(--line);border-radius:14px;box-shadow:0 12px 30px rgba(0,0,0,.12);padding:14px}
+    .share-pop h4{margin:0 0 4px;font-size:13.5px;font-weight:600}
+    .share-pop p{margin:0 0 10px;font-size:12px;color:var(--ash);line-height:1.5}
+    .share-pop .row{display:flex;gap:6px}
+    .share-pop input{flex:1;height:34px;border:1px solid var(--line);border-radius:8px;padding:0 10px;font-size:11.5px;font-family:var(--mono);background:var(--paper);color:var(--muted)}
+    .share-pop button{height:34px;padding:0 12px;border-radius:8px;background:var(--ink);color:#fff;font-size:12px;font-weight:600;flex-shrink:0}
+    .share-pop button:hover{background:var(--pulse)}
+    .share-pop .unshare{margin-top:9px;background:none;color:var(--pulse);font-size:11.5px;font-weight:500;padding:0;height:auto}
     .cur-model .logo{width:17px;height:17px}
     .logo{width:19px;height:19px;flex-shrink:0;display:block;border-radius:5px}
     .composer-toolbar{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:2px}
@@ -139,6 +152,8 @@
     .send:not(:disabled):hover{transform:scale(1.05)}
     .send svg{width:16px;height:16px;display:block}
     .foot{text-align:center;font-size:10.5px;color:var(--ash);margin-top:6px}
+    .share-cta{display:flex;align-items:center;justify-content:center;gap:14px;padding:12px 18px;border:1px solid var(--line);border-radius:14px;background:var(--paper-2);font-size:12.5px;color:var(--muted)}
+    .share-cta a{color:var(--pulse);font-weight:600;text-decoration:none;white-space:nowrap}
     .notice{color:var(--pulse)}
     @@media(max-width:760px){.app{grid-template-columns:0 1fr}.side{border-right:0}}
   </style>
@@ -158,6 +173,13 @@
     <div class="top">
       <button class="iconbtn" id="toggle" title="Masquer l'historique"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="2"></rect><path d="M9 4v16"></path></svg></button>
       <div class="cur-model" id="curModelBadge"></div>
+      <button type="button" class="share-btn" id="shareBtn" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a3 3 0 1 0-2.83-4H15a3 3 0 0 0 .05 2.9L8.9 10.2a3 3 0 1 0 0 3.6l6.15 3.3A3 3 0 1 0 18 16a2.98 2.98 0 0 0-.24 1.06l-6.2-3.33a3 3 0 0 0 0-1.46l6.2-3.33A3 3 0 0 0 18 8Z"></path></svg><span>Partager</span></button>
+      <div class="share-pop" id="sharePop" hidden>
+        <h4>Lien de partage public</h4>
+        <p>Toute personne avec ce lien peut lire cette conversation, sans se connecter.</p>
+        <div class="row"><input type="text" id="shareUrl" readonly><button type="button" id="shareCopy">Copier</button></div>
+        <button type="button" class="unshare" id="shareOff">Arrêter le partage</button>
+      </div>
     </div>
 
     <div class="scroll" id="scroll">
@@ -218,6 +240,28 @@ const LOGOS={
 };
 const DEFAULT_LOGO='<svg class="logo" viewBox="0 0 40 40"><rect width="40" height="40" rx="9" fill="#111"/><path fill="#FF4D2E" d="M12 20c.2-4 3.4-7.2 8-7.4-2.6 1.5-4.2 4.3-4.3 7.4.1 3.1 1.7 5.9 4.3 7.4-4.6-.2-7.8-3.4-8-7.4Z"/></svg>';
 const logoFor=provider=>LOGOS[provider]||DEFAULT_LOGO;
+
+// Lien de partage public (/chat/<uuid>?public=1) : lecture seule, AUCUNE
+// authentification requise. Court-circuite tout le reste du bootstrap
+// (sidebar/composer/modèles), qui n'a pas de sens pour un visiteur anonyme.
+if(new URLSearchParams(location.search).get('public')==='1'){
+  const m=/^\/chat\/([^/]+)$/.exec(location.pathname);
+  document.getElementById('app').classList.add('collapsed');
+  document.getElementById('empty').style.display='none';
+  const thread=document.getElementById('thread'),scroll=document.getElementById('scroll');
+  thread.style.display='';
+  document.querySelector('.dock').innerHTML='<div class="composer"><div class="share-cta"><span>Vous consultez une conversation partagée en lecture seule.</span><a href="'+login+'/?return_to='+encodeURIComponent(location.origin)+'">Essayer Noliae IA →</a></div></div>';
+  if(m){
+    fetch(api+'/v1/conversations/'+encodeURIComponent(m[1])+'/public').then(async r=>{
+      if(!r.ok)throw 0; return r.json();
+    }).then(data=>{
+      document.getElementById('curModelBadge').innerHTML=logoFor(data.provider)+'<span>'+esc(data.model||data.provider)+'</span>';
+      (data.messages||[]).forEach(msg=>renderMsg(msg.role,msg.role==='user'?esc(msg.content).replace(/\n/g,'<br>'):md(msg.content),data.provider,data.model));
+      scroll.scrollTop=0;
+    }).catch(()=>{thread.innerHTML='<p style="padding:24px;color:var(--ash)">Cette conversation n\'est plus partagée, ou n\'existe pas.</p>'});
+  }
+  return;
+}
 
 let MODELS=[],curModel=null,PROVIDERS=[];
 // Ordre de préférence par coût (les moins chers en tête) : le premier
@@ -306,10 +350,12 @@ const thread=document.getElementById('thread'),empty=document.getElementById('em
 // Chaque conversation vit à sa propre URL (/chat/<uuid>), et « nouvelle
 // discussion » à /chat/new — sans ça, un refresh ou un lien partagé
 // ramène toujours à la racine au lieu de rouvrir la bonne conversation.
-function newChat(push){activeId=null;thread.innerHTML='';thread.style.display='none';empty.style.display='';ta.value='';autosize();send.disabled=true;renderConvs();if(push!==false&&location.pathname!=='/chat/new')history.pushState({chat:null},'','/chat/new')}
+const shareBtn=document.getElementById('shareBtn'),sharePop=document.getElementById('sharePop'),shareUrl=document.getElementById('shareUrl');
+function updateShareBtn(){shareBtn.hidden=!activeId;shareBtn.classList.remove('on');sharePop.hidden=true}
+function newChat(push){activeId=null;thread.innerHTML='';thread.style.display='none';empty.style.display='';ta.value='';autosize();send.disabled=true;renderConvs();updateShareBtn();if(push!==false&&location.pathname!=='/chat/new')history.pushState({chat:null},'','/chat/new')}
 document.getElementById('newChat').addEventListener('click',()=>newChat());
 async function openChat(id,push){
-  activeId=id;empty.style.display='none';thread.style.display='';thread.innerHTML='';renderConvs();
+  activeId=id;empty.style.display='none';thread.style.display='';thread.innerHTML='';renderConvs();updateShareBtn();
   if(push!==false&&location.pathname!=='/chat/'+id)history.pushState({chat:id},'','/chat/'+encodeURIComponent(id));
   const ch=chats.find(c=>String(c.id)===String(id));
   if(ch){const m=PROVIDERS.find(p=>p.provider===ch.provider);if(m){curModel=MODELS.find(x=>x.provider===ch.provider&&x.model===ch.model)||m;renderProviders()}}
@@ -320,6 +366,22 @@ async function openChat(id,push){
   }catch(_){}
   scroll.scrollTop=scroll.scrollHeight;
 }
+shareBtn.addEventListener('click',async()=>{
+  if(!activeId)return;
+  if(!sharePop.hidden){sharePop.hidden=true;return}
+  try{
+    const r=await fetch(api+'/v1/conversations/'+encodeURIComponent(activeId)+'/share',{method:'POST',credentials:'include'});
+    if(!r.ok)return;
+    shareUrl.value=location.origin+'/chat/'+activeId+'?public=1';
+    shareBtn.classList.add('on');sharePop.hidden=false;shareUrl.select()
+  }catch(_){}
+});
+document.getElementById('shareCopy').addEventListener('click',()=>{shareUrl.select();try{navigator.clipboard.writeText(shareUrl.value)}catch(_){document.execCommand('copy')}});
+document.getElementById('shareOff').addEventListener('click',async()=>{
+  if(!activeId)return;
+  try{await fetch(api+'/v1/conversations/'+encodeURIComponent(activeId)+'/share',{method:'DELETE',credentials:'include'})}catch(_){}
+  shareBtn.classList.remove('on');sharePop.hidden=true;
+});
 window.addEventListener('popstate',e=>{
   const id=e.state&&e.state.chat;
   if(id)openChat(id,false);else newChat(false);
