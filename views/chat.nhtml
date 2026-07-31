@@ -242,31 +242,10 @@ const DEFAULT_LOGO='<svg class="logo" viewBox="0 0 40 40"><rect width="40" heigh
 const logoFor=provider=>LOGOS[provider]||DEFAULT_LOGO;
 
 // Lien de partage public (/chat/<uuid>?public=1) : lecture seule, AUCUNE
-// authentification requise. Court-circuite tout le reste du bootstrap
-// (sidebar/composer/modèles), qui n'a pas de sens pour un visiteur anonyme.
-// Déclaré ICI (et non plus bas comme avant) : renderMsg() ferme sur ces
-// const, et le mode partage public retourne avant d'atteindre l'ancienne
-// déclaration — les laisser plus bas les rendait inaccessibles (TDZ),
-// renderMsg levait alors une ReferenceError silencieusement avalée par le
-// .catch() du fetch, d'où un lien de partage qui semblait "ne plus exister".
-const thread=document.getElementById('thread'),empty=document.getElementById('empty'),scroll=document.getElementById('scroll'),ta=document.getElementById('ta'),send=document.getElementById('send');
-if(new URLSearchParams(location.search).get('public')==='1'){
-  const m=/^\/chat\/([^/]+)$/.exec(location.pathname);
-  document.getElementById('app').classList.add('collapsed');
-  empty.style.display='none';
-  thread.style.display='';
-  document.querySelector('.dock').innerHTML='<div class="composer"><div class="share-cta"><span>Vous consultez une conversation partagée en lecture seule.</span><a href="'+login+'/?return_to='+encodeURIComponent(location.origin)+'">Essayer Noliae IA →</a></div></div>';
-  if(m){
-    fetch(api+'/v1/conversations/'+encodeURIComponent(m[1])+'/public').then(async r=>{
-      if(!r.ok)throw 0; return r.json();
-    }).then(data=>{
-      document.getElementById('curModelBadge').innerHTML=logoFor(data.provider)+'<span>'+esc(data.model||data.provider)+'</span>';
-      (data.messages||[]).forEach(msg=>renderMsg(msg.role,msg.role==='user'?esc(msg.content).replace(/\n/g,'<br>'):md(msg.content),data.provider,data.model));
-      scroll.scrollTop=0;
-    }).catch(e=>{console.error('partage public:',e);thread.innerHTML='<p style="padding:24px;color:var(--ash)">Cette conversation n\'est plus partagée, ou n\'existe pas.</p>'});
-  }
-  return;
-}
+// authentification requise. Voir tout en bas du script (juste avant le
+// bootstrap authentifié) pour le déclenchement réel : toutes les const/let/
+// function dont il dépend (thread, MODELS, renderMsg...) doivent déjà être
+// initialisées, sinon TDZ -> ReferenceError avalée par le .catch().
 
 let MODELS=[],curModel=null,PROVIDERS=[];
 // Ordre de préférence par coût (les moins chers en tête) : le premier
@@ -351,6 +330,7 @@ async function delChat(id){
   try{await fetch(api+'/v1/conversations/'+encodeURIComponent(id),{method:'DELETE',credentials:'include'})}catch(_){}
 }
 
+const thread=document.getElementById('thread'),empty=document.getElementById('empty'),scroll=document.getElementById('scroll'),ta=document.getElementById('ta'),send=document.getElementById('send');
 // Chaque conversation vit à sa propre URL (/chat/<uuid>), et « nouvelle
 // discussion » à /chat/new — sans ça, un refresh ou un lien partagé
 // ramène toujours à la racine au lieu de rouvrir la bonne conversation.
@@ -520,6 +500,31 @@ try{
     ta.disabled=false;document.getElementById('attach').disabled=false;
   }
 }catch(_){}
+
+// Lien de partage public (/chat/<uuid>?public=1) : lecture seule, AUCUNE
+// authentification requise. Placé ICI (tout en bas, juste avant le
+// bootstrap authentifié) : renderMsg/md/esc/logoFor sont des fonctions
+// hoistées (ok dès le début du script), mais MODELS/thread/etc. sont des
+// let/const dont l'INITIALISATION doit déjà avoir eu lieu, sinon TDZ ->
+// ReferenceError silencieusement avalée par le .catch() du fetch (bug
+// vécu : le lien semblait "ne plus exister" alors que l'API répondait 200).
+if(new URLSearchParams(location.search).get('public')==='1'){
+  const m=/^\/chat\/([^/]+)$/.exec(location.pathname);
+  document.getElementById('app').classList.add('collapsed');
+  empty.style.display='none';
+  thread.style.display='';
+  document.querySelector('.dock').innerHTML='<div class="composer"><div class="share-cta"><span>Vous consultez une conversation partagée en lecture seule.</span><a href="'+login+'/?return_to='+encodeURIComponent(location.origin)+'">Essayer Noliae IA →</a></div></div>';
+  if(m){
+    fetch(api+'/v1/conversations/'+encodeURIComponent(m[1])+'/public').then(async r=>{
+      if(!r.ok)throw 0; return r.json();
+    }).then(data=>{
+      document.getElementById('curModelBadge').innerHTML=logoFor(data.provider)+'<span>'+esc(data.model||data.provider)+'</span>';
+      (data.messages||[]).forEach(msg=>renderMsg(msg.role,msg.role==='user'?esc(msg.content).replace(/\n/g,'<br>'):md(msg.content),data.provider,data.model));
+      scroll.scrollTop=0;
+    }).catch(e=>{console.error('partage public:',e);thread.innerHTML='<p style="padding:24px;color:var(--ash)">Cette conversation n\'est plus partagée, ou n\'existe pas.</p>'});
+  }
+  return;
+}
 
 fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0;return r.json()}).then(user=>{
   document.getElementById('side-av').textContent=(user.name||user.email||'?').slice(0,2).toUpperCase();
