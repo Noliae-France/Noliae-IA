@@ -143,6 +143,7 @@
     .msg .body .tok-cm{color:#8A8680!important;font-style:italic}
     .msg .body .tok-num{color:#8EC9E8!important}
     .msg .body strong{font-weight:600}
+    .msg .body .msg-img{max-width:100%;max-height:340px;border-radius:10px;border:1px solid var(--line);display:block;margin:4px 0 10px}
     .msg .who{font-size:11px;color:var(--ash);font-weight:500;margin-bottom:3px}
     .dots{display:inline-flex;gap:4px;padding-top:6px}
     .dots i{width:6px;height:6px;border-radius:50%;background:var(--ash);animation:bl 1.2s infinite}
@@ -228,7 +229,7 @@
           <div class="composer-toolbar">
             <div class="tools-left">
               <button class="ic" id="attach" title="Joindre un document" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.5 12.5 21a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10.5 19a2 2 0 0 1-3-3l8-8"></path></svg></button>
-              <input type="file" id="attachInput" accept=".txt,.md,.csv,.json,.log,text/plain" hidden>
+              <input type="file" id="attachInput" accept=".txt,.md,.csv,.json,.log,text/plain,image/png,image/jpeg,image/webp,image/gif" hidden>
               <div class="providers" id="providers"></div>
             </div>
             <button class="send" id="send" disabled type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20V5M6 11l6-6 6 6"></path></svg></button>
@@ -447,6 +448,7 @@ function md(s){
     return ' B'+(blocks.length-1)+' ';
   });
   s=s.replace(/`([^`]+)`/g,'<code>$1</code>');
+  s=s.replace(/!\[([^\]]*)\]\((https:\/\/[^)\s]+)\)/g,'<img class="msg-img" src="$2" alt="$1" loading="lazy" referrerpolicy="no-referrer">');
   s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');
   const lines=s.split('\n');let out='',list=null;
   for(let ln of lines){
@@ -468,20 +470,41 @@ function renderMsg(role,html,provider,model){
 
 const attachBtn=document.getElementById('attach'),attachInput=document.getElementById('attachInput');
 attachBtn.addEventListener('click',()=>attachInput.click());
+// Upload d'image : URL présignée S3 (le navigateur PUT directement sur S3,
+// nos octets ne transitent jamais par notre propre serveur — voir s3.nol
+// côté NolCore pour le pourquoi). Le lien public est ensuite inséré en
+// markdown dans le message ; les modèles configurés ici sont des chat
+// completions texte, donc SANS vision ils ne "voient" pas l'image, seulement
+// son URL — c'est un stockage/partage d'image, pas encore une entrée vision.
+async function uploadImage(file,foot){
+  foot.textContent='Envoi de « '+file.name+' »…';
+  const r=await fetch(api+'/v1/uploads/presign',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({content_type:file.type})});
+  const data=await r.json().catch(()=>({}));
+  if(!r.ok)throw new Error(data.detail||'Import d\'image impossible.');
+  const put=await fetch(data.upload_url,{method:'PUT',headers:{'Content-Type':file.type,'x-amz-acl':'public-read'},body:file});
+  if(!put.ok)throw new Error('Dépôt sur le stockage impossible.');
+  const insert='![image]('+data.public_url+')\n';
+  ta.value=insert+ta.value;autosize();send.disabled=!ta.value.trim();
+  foot.textContent='Image ajoutée — un lien a été inséré dans votre message.';
+}
 attachInput.addEventListener('change',async()=>{
   const file=attachInput.files[0];attachInput.value='';
   if(!file)return;
   const foot=document.getElementById('foot');
   const avant=foot.textContent;
-  foot.textContent='Envoi de « '+file.name+' »…';
   try{
-    const content=await file.text();
-    if(!content.trim())throw new Error('Fichier vide.');
-    const r=await fetch(api+'/api/documents',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({title:file.name,content})});
-    const data=await r.json().catch(()=>({}));
-    if(!r.ok)throw new Error(data.detail||'Envoi impossible.');
-    foot.textContent='« '+file.name+' » ajouté — le contexte sera utilisé dans vos prochains messages.';
-  }catch(e){foot.textContent=(e instanceof TypeError)?'La connexion à nos serveurs semble bloquée par une extension (bloqueur de publicités/traceurs).':(e.message||'Envoi du document impossible.')}
+    if(file.type&&file.type.startsWith('image/')){
+      await uploadImage(file,foot);
+    }else{
+      foot.textContent='Envoi de « '+file.name+' »…';
+      const content=await file.text();
+      if(!content.trim())throw new Error('Fichier vide.');
+      const r=await fetch(api+'/api/documents',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({title:file.name,content})});
+      const data=await r.json().catch(()=>({}));
+      if(!r.ok)throw new Error(data.detail||'Envoi impossible.');
+      foot.textContent='« '+file.name+' » ajouté — le contexte sera utilisé dans vos prochains messages.';
+    }
+  }catch(e){foot.textContent=(e instanceof TypeError)?'La connexion à nos serveurs semble bloquée par une extension (bloqueur de publicités/traceurs).':(e.message||'Envoi impossible.')}
   setTimeout(()=>{foot.textContent=avant},4000);
 });
 function autosize(){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,180)+'px'}
