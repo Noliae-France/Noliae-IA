@@ -227,7 +227,11 @@ function calculerProviders(){
   PROVIDERS=MODELS.filter(m=>{if(vus.has(m.provider))return false;vus.add(m.provider);return true});
 }
 function renderProviders(){
-  providersEl.innerHTML=PROVIDERS.map(m=>'<button type="button" class="provider '+(curModel&&curModel.provider===m.provider?'on':'')+'" data-provider="'+esc(m.provider)+'">'+logoFor(m.provider)+'<span>'+esc(m.label||m.provider)+'</span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>').join('');
+  providersEl.innerHTML=PROVIDERS.map(m=>{
+    const actif=curModel&&curModel.provider===m.provider;
+    const texte=actif?(curModel.model||curModel.label||curModel.provider):(m.label||m.provider);
+    return '<button type="button" class="provider '+(actif?'on':'')+'" data-provider="'+esc(m.provider)+'">'+logoFor(m.provider)+'<span>'+esc(texte)+'</span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>';
+  }).join('');
   providersEl.querySelectorAll('.provider').forEach(b=>b.addEventListener('click',()=>openModelModal(b.dataset.provider)));
   const badge=document.getElementById('curModelBadge');
   badge.innerHTML=curModel?(logoFor(curModel.provider)+'<span>'+esc(curModel.model||curModel.label||curModel.provider)+'</span>'):'';
