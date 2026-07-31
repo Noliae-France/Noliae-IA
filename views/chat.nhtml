@@ -52,11 +52,26 @@
     .cur-model .logo{width:17px;height:17px}
     .logo{width:19px;height:19px;flex-shrink:0;display:block;border-radius:5px}
     .providers{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;margin-top:9px}
-    .provider{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 10px;border:1px solid var(--line);border-radius:100px;font-size:12px;font-weight:500;background:var(--paper-2);color:var(--muted);opacity:.65;transition:border-color var(--t),color var(--t),background var(--t),opacity var(--t)}
+    .provider{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 10px;border:1px solid var(--line);border-radius:100px;font-size:12px;font-weight:500;background:#fff;color:#57534e;opacity:.75;transition:border-color var(--t),color var(--t),background var(--t),opacity var(--t)}
+    .provider span{color:inherit}
     .provider:hover{border-color:var(--ash);color:var(--ink);opacity:1}
-    .provider.on{border-color:var(--ink);color:var(--ink);opacity:1}
+    .provider.on{border-color:var(--ink);color:var(--ink);opacity:1;font-weight:600}
     .provider .logo{width:15px;height:15px}
     .provider .cv{width:12px;height:12px;color:var(--ash)}
+    .modal-veil{position:fixed;inset:0;background:rgba(17,17,17,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+    .modal{width:100%;max-width:420px;max-height:80vh;background:var(--paper-2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}
+    .modal header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
+    .modal header h2{font-size:15px;font-weight:600;margin:0}
+    .modal-list{overflow-y:auto;padding:8px}
+    .modal-group{padding:10px 10px 4px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ash)}
+    .modal-opt{display:flex;align-items:center;gap:11px;padding:10px;border-radius:10px;cursor:pointer;transition:background var(--t)}
+    .modal-opt:hover{background:var(--bubble)}
+    .modal-opt .logo{width:24px;height:24px}
+    .modal-opt .tx{flex:1;min-width:0}
+    .modal-opt .nm{font-size:13.5px;font-weight:500;color:var(--ink)}
+    .modal-opt .ds{font-size:11.5px;color:var(--ash);margin-top:1px}
+    .modal-opt .ck{width:16px;height:16px;color:var(--ink);opacity:0;flex-shrink:0}
+    .modal-opt.on .ck{opacity:1}
     .scroll{flex:1;overflow-y:auto}
     .stage{width:100%;max-width:720px;margin:0 auto;padding:0 24px;min-height:100%;display:flex;flex-direction:column}
     .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-bottom:8vh}
@@ -155,6 +170,12 @@
     </div>
   </div>
 </div>
+<div class="modal-veil" id="modelModalVeil" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="Choisir un modèle">
+    <header><h2>Choisir un modèle</h2><button type="button" class="iconbtn" id="modelModalClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
+    <div class="modal-list" id="modelModalList"></div>
+  </div>
+</div>
 <script src="/static/links.js"></script>
 <script>
 (()=>{
@@ -176,11 +197,17 @@ let MODELS=[],curModel=null,PROVIDERS=[];
 // fournisseur DISPONIBLE de cette liste devient le choix par défaut.
 const ORDRE_ECONOMIQUE=['mistral','gemini','chatgpt','claude'];
 
-const KEY='noliae_ai_chats_v1';
-let chats=JSON.parse(localStorage.getItem(KEY)||'[]');
-let activeId=null,busy=false;
-function save(){localStorage.setItem(KEY,JSON.stringify(chats))}
-function active(){return chats.find(c=>c.id===activeId)}
+// L'historique vit en base (table conversations/messages, déjà écrite par
+// /v1/ia à chaque message) : cette liste n'est qu'un cache d'affichage de
+// /v1/conversations, jamais la source de vérité.
+let chats=[],activeId=null,busy=false;
+async function loadConvs(){
+  try{
+    const r=await fetch(api+'/v1/conversations',{credentials:'include'});
+    chats=r.ok?await r.json():[];
+  }catch(_){chats=[]}
+  renderConvs();
+}
 
 const providersEl=document.getElementById('providers');
 // Une pastille par FOURNISSEUR (pas par modèle : la liste complète peut
@@ -192,26 +219,57 @@ function calculerProviders(){
   PROVIDERS=MODELS.filter(m=>{if(vus.has(m.provider))return false;vus.add(m.provider);return true});
 }
 function renderProviders(){
-  providersEl.innerHTML=PROVIDERS.map(m=>'<button type="button" class="provider '+(m===curModel?'on':'')+'" data-provider="'+esc(m.provider)+'">'+logoFor(m.provider)+'<span>'+esc(m.label||m.provider)+'</span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>').join('');
-  providersEl.querySelectorAll('.provider').forEach(b=>b.addEventListener('click',()=>{curModel=PROVIDERS.find(m=>m.provider===b.dataset.provider);renderProviders()}));
+  providersEl.innerHTML=PROVIDERS.map(m=>'<button type="button" class="provider '+(curModel&&curModel.provider===m.provider?'on':'')+'" data-provider="'+esc(m.provider)+'">'+logoFor(m.provider)+'<span>'+esc(m.label||m.provider)+'</span><svg class="cv" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m9 6 6 6-6 6"/></svg></button>').join('');
+  providersEl.querySelectorAll('.provider').forEach(b=>b.addEventListener('click',()=>openModelModal(b.dataset.provider)));
   const badge=document.getElementById('curModelBadge');
   badge.innerHTML=curModel?(logoFor(curModel.provider)+'<span>'+esc(curModel.label||curModel.provider)+'</span>'):'';
 }
+
+const modelVeil=document.getElementById('modelModalVeil'),modelList=document.getElementById('modelModalList');
+function openModelModal(focusProvider){
+  const groupes={};
+  MODELS.forEach(m=>{(groupes[m.provider]=groupes[m.provider]||[]).push(m)});
+  modelList.innerHTML=Object.keys(groupes).map(p=>'<div class="modal-group">'+esc(groupes[p][0].label||p)+'</div>'+groupes[p].map(m=>'<div class="modal-opt '+(m===curModel?'on':'')+'" data-provider="'+esc(m.provider)+'" data-model="'+esc(m.model)+'">'+logoFor(m.provider)+'<div class="tx"><div class="nm">'+esc(m.model)+'</div></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-9"/></svg></div>').join('')).join('');
+  modelList.querySelectorAll('.modal-opt').forEach(o=>o.addEventListener('click',()=>{
+    curModel=MODELS.find(m=>m.provider===o.dataset.provider&&m.model===o.dataset.model)||curModel;
+    renderProviders();closeModelModal();
+  }));
+  modelVeil.hidden=false;
+  if(focusProvider){const first=modelList.querySelector('[data-provider="'+focusProvider+'"]');if(first)first.scrollIntoView({block:'center'})}
+}
+function closeModelModal(){modelVeil.hidden=true}
+document.getElementById('modelModalClose').addEventListener('click',closeModelModal);
+modelVeil.addEventListener('click',e=>{if(e.target===modelVeil)closeModelModal()});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeModelModal()});
 
 document.getElementById('toggle').addEventListener('click',()=>document.getElementById('app').classList.toggle('collapsed'));
 function renderConvs(){
   const c=document.getElementById('convs');
   if(!chats.length){c.innerHTML='<div class="dh">Aucune discussion</div>';return}
-  c.innerHTML='<div class="dh">Récent</div>'+chats.map(ch=>'<div class="conv '+(ch.id===activeId?'on':'')+'" data-id="'+ch.id+'"><span class="tt">'+escAttr(ch.title)+'</span><button class="del" data-del="'+ch.id+'" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 7h12M9 7V5h6v2M8 7l1 13h6l1-13"/></svg></button></div>').join('');
+  c.innerHTML='<div class="dh">Récent</div>'+chats.map(ch=>'<div class="conv '+(String(ch.id)===String(activeId)?'on':'')+'" data-id="'+ch.id+'"><span class="tt">'+escAttr(ch.title)+'</span><button class="del" data-del="'+ch.id+'" title="Supprimer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"><path d="M6 7h12M9 7V5h6v2M8 7l1 13h6l1-13"/></svg></button></div>').join('');
   c.querySelectorAll('.conv').forEach(el=>el.addEventListener('click',()=>openChat(el.dataset.id)));
   c.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();delChat(b.dataset.del)}));
 }
-function delChat(id){chats=chats.filter(c=>c.id!==id);if(activeId===id){activeId=null;newChat()}save();renderConvs()}
+async function delChat(id){
+  if(String(activeId)===String(id))newChat();
+  chats=chats.filter(c=>String(c.id)!==String(id));renderConvs();
+  try{await fetch(api+'/v1/conversations/'+encodeURIComponent(id),{method:'DELETE',credentials:'include'})}catch(_){}
+}
 
 const thread=document.getElementById('thread'),empty=document.getElementById('empty'),scroll=document.getElementById('scroll'),ta=document.getElementById('ta'),send=document.getElementById('send');
 function newChat(){activeId=null;thread.innerHTML='';thread.style.display='none';empty.style.display='';ta.value='';autosize();send.disabled=true;renderConvs()}
 document.getElementById('newChat').addEventListener('click',newChat);
-function openChat(id){activeId=id;const ch=active();empty.style.display='none';thread.style.display='';thread.innerHTML='';ch.msgs.forEach(m=>renderMsg(m.role,m.role==='user'?esc(m.content).replace(/\n/g,'<br>'):md(m.content),m.provider));scroll.scrollTop=scroll.scrollHeight;renderConvs()}
+async function openChat(id){
+  activeId=id;empty.style.display='none';thread.style.display='';thread.innerHTML='';renderConvs();
+  const ch=chats.find(c=>String(c.id)===String(id));
+  if(ch){const m=PROVIDERS.find(p=>p.provider===ch.provider);if(m){curModel=MODELS.find(x=>x.provider===ch.provider&&x.model===ch.model)||m;renderProviders()}}
+  try{
+    const r=await fetch(api+'/v1/conversations/'+encodeURIComponent(id)+'/messages',{credentials:'include'});
+    const msgs=r.ok?await r.json():[];
+    msgs.forEach(m=>renderMsg(m.role,m.role==='user'?esc(m.content).replace(/\n/g,'<br>'):md(m.content),ch&&ch.provider));
+  }catch(_){}
+  scroll.scrollTop=scroll.scrollHeight;
+}
 
 function esc(s){return String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 function escAttr(s){return esc(s).replace(/"/g,'&quot;')}
@@ -233,20 +291,21 @@ document.querySelectorAll('#sugg button').forEach(b=>b.addEventListener('click',
 async function submit(){
   const q=ta.value.trim();if(!q||busy||!curModel)return;
   busy=true;send.disabled=true;
-  if(!activeId){const id='c'+Date.now();chats.unshift({id,title:q.slice(0,42),convId:'',msgs:[]});activeId=id;empty.style.display='none';thread.style.display=''}
-  const ch=active();
-  ch.msgs.push({role:'user',content:q});save();renderConvs();
+  const isNew=!activeId;
+  if(isNew){empty.style.display='none';thread.style.display=''}
   renderMsg('user',esc(q).replace(/\n/g,'<br>'));
   ta.value='';autosize();
   const provider=curModel.provider;
   const body=renderMsg('assistant','<div class="dots"><i></i><i></i><i></i></div>',provider);
   try{
-    const r=await fetch(api+'/v1/ia',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({message:q,provider:curModel.provider,model:curModel.model,conversation_id:ch.convId||undefined})});
+    const r=await fetch(api+'/v1/ia',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({message:q,provider:curModel.provider,model:curModel.model,conversation_id:activeId||undefined})});
     const data=await r.json().catch(()=>({}));
     if(!r.ok)throw data;
-    ch.convId=data.conversation_id||ch.convId;
-    ch.msgs.push({role:'assistant',content:data.answer||'',provider});save();
+    activeId=data.conversation_id||activeId;
     body.innerHTML='<div class="who">'+esc(curModel.label||curModel.provider)+'</div>'+md(data.answer||'Aucune réponse reçue.');
+    // Nouvelle conversation ou historique désynchronisé : on relit la liste
+    // côté serveur plutôt que de deviner le titre/tri localement.
+    await loadConvs();
   }catch(e){body.innerHTML='<p style="color:var(--pulse)">'+esc((e instanceof TypeError)?'La connexion à nos serveurs semble bloquée par une extension (bloqueur de publicités/traceurs). Désactive-la pour ce site, ou essaie en navigation privée, puis réessaie.':((e&&e.detail)||'Une erreur est survenue. Réessayez dans un instant.'))+'</p>'}
   scroll.scrollTop=scroll.scrollHeight;
   busy=false;send.disabled=!ta.value.trim();ta.focus()
@@ -265,7 +324,7 @@ fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0
   const parEconomie=ORDRE_ECONOMIQUE.map(p=>PROVIDERS.find(m=>m.provider===p)).find(Boolean);
   curModel=parEconomie||PROVIDERS[0];
   renderProviders();
-  ta.disabled=false;renderConvs();
+  ta.disabled=false;loadConvs();
 }).catch(()=>{ if(!MODELS.length){ goLogin(); } });
 })();
 </script>
