@@ -93,8 +93,11 @@
     .sugg button:hover{border-color:var(--ash);color:var(--ink);transform:translateY(-1px)}
     .thread{padding:22px 0 20px;display:flex;flex-direction:column;gap:22px}
     .msg{display:flex;gap:12px}
+    .msg.u{flex-direction:row-reverse;justify-content:flex-start}
     .msg .ava{width:26px;height:26px;border-radius:7px;flex-shrink:0;display:grid;place-items:center;overflow:hidden}
     .msg.u .ava{background:var(--ink);color:#fff;font-family:var(--mono);font-size:10px;font-weight:500;border-radius:50%}
+    .msg.u .body{flex:0 1 auto;max-width:72%;background:var(--bubble);border-radius:16px 16px 4px 16px;padding:10px 14px;color:var(--ink)}
+    .msg.u .body p{margin:0 0 6px}.msg.u .body p:last-child{margin:0}
     .msg .ava .logo{width:26px;height:26px;border-radius:7px}
     .msg .body{padding-top:2px;line-height:1.62;flex:1;min-width:0;color:var(--carbon)}
     .msg .body p{margin:0 0 10px}.msg .body p:last-child{margin:0}
