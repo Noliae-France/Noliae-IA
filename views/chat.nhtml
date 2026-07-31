@@ -79,13 +79,14 @@
     .scroll{flex:1;overflow-y:auto}
     .stage{width:100%;max-width:920px;margin:0 auto;padding:0 24px;min-height:100%;display:flex;flex-direction:column}
     .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-bottom:8vh}
-    .empty .mark{filter:drop-shadow(0 4px 10px rgba(0,0,0,.08));animation:float 4.5s var(--ease) infinite}
-    .empty .mark .wave{gap:4px}
-    .empty .mark .wave i{width:8px;background:var(--ink);border-radius:5px}
-    .empty .mark .wave i:nth-child(1),.empty .mark .wave i:nth-child(7){height:24px}
-    .empty .mark .wave i:nth-child(2),.empty .mark .wave i:nth-child(6){height:40px}
-    .empty .mark .wave i:nth-child(3),.empty .mark .wave i:nth-child(5){height:56px}
-    .empty .mark .wave i:nth-child(4){height:70px;background:var(--pulse)}
+    .empty .mark{filter:drop-shadow(0 4px 10px rgba(0,0,0,.08))}
+    .empty .mark .wave{gap:4px;align-items:center}
+    .empty .mark .wave i{width:8px;background:var(--ink);border-radius:5px;transform-origin:center;animation:eq .9s ease-in-out infinite}
+    .empty .mark .wave i:nth-child(1),.empty .mark .wave i:nth-child(7){height:24px;animation-delay:-.6s}
+    .empty .mark .wave i:nth-child(2),.empty .mark .wave i:nth-child(6){height:40px;animation-delay:-.3s}
+    .empty .mark .wave i:nth-child(3),.empty .mark .wave i:nth-child(5){height:56px;animation-delay:-.75s}
+    .empty .mark .wave i:nth-child(4){height:70px;background:var(--pulse);animation-delay:-.15s}
+    @@keyframes eq{0%,100%{transform:scaleY(.45)}50%{transform:scaleY(1)}}
     @@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
     .empty .h{font-size:22px;font-weight:500;letter-spacing:-.02em}
     .empty .sub{font-size:14px;color:var(--ash);margin-top:-8px}
