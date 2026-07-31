@@ -263,7 +263,7 @@ if(new URLSearchParams(location.search).get('public')==='1'){
       document.getElementById('curModelBadge').innerHTML=logoFor(data.provider)+'<span>'+esc(data.model||data.provider)+'</span>';
       (data.messages||[]).forEach(msg=>renderMsg(msg.role,msg.role==='user'?esc(msg.content).replace(/\n/g,'<br>'):md(msg.content),data.provider,data.model));
       scroll.scrollTop=0;
-    }).catch(()=>{thread.innerHTML='<p style="padding:24px;color:var(--ash)">Cette conversation n\'est plus partagée, ou n\'existe pas.</p>'});
+    }).catch(e=>{console.error('partage public:',e);thread.innerHTML='<p style="padding:24px;color:var(--ash)">Cette conversation n\'est plus partagée, ou n\'existe pas.</p>'});
   }
   return;
 }
