@@ -61,10 +61,10 @@
     .providers .prov.on{border-color:var(--pulse);color:var(--ink);background:#FFF4F1}
     .providers .prov .logo{width:14px;height:14px}
     .providers .prov .cv{width:11px;height:11px;color:var(--ash)}
-    .modal-veil{position:fixed;inset:0;background:rgba(17,17,17,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
-    .modal{width:100%;max-width:420px;max-height:80vh;background:var(--paper-2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}
-    .modal header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
-    .modal header h2{font-size:15px;font-weight:600;margin:0}
+    .ia-modal-veil{position:fixed;inset:0;background:rgba(17,17,17,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+    .ia-modal{width:100%;max-width:420px;max-height:80vh;background:var(--paper-2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}
+    .ia-modal header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
+    .ia-modal header h2{font-size:15px;font-weight:600;margin:0}
     .modal-list{overflow-y:auto;padding:8px}
     .modal-group{padding:10px 10px 4px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--ash)}
     .modal-opt{display:flex;align-items:center;gap:11px;padding:10px;border-radius:10px;cursor:pointer;transition:background var(--t)}
@@ -179,8 +179,8 @@
     </div>
   </div>
 </div>
-<div class="modal-veil" id="modelModalVeil" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-label="Choisir un modèle">
+<div class="ia-modal-veil" id="modelModalVeil" hidden>
+  <div class="ia-modal" role="dialog" aria-modal="true" aria-label="Choisir un modèle">
     <header><h2>Choisir un modèle</h2><button type="button" class="iconbtn" id="modelModalClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6 6 18"/></svg></button></header>
     <div class="modal-list" id="modelModalList"></div>
   </div>
@@ -252,7 +252,7 @@ function openModelModal(focusProvider){
   const source=focusProvider?MODELS.filter(m=>m.provider===focusProvider):MODELS;
   const groupes={};
   source.forEach(m=>{(groupes[m.provider]=groupes[m.provider]||[]).push(m)});
-  const titre=document.querySelector('.modal header h2');
+  const titre=document.querySelector('.ia-modal header h2');
   titre.textContent=focusProvider?('Choisir un modèle · '+(groupes[focusProvider]&&(groupes[focusProvider][0].label||focusProvider))):'Choisir un modèle';
   modelList.innerHTML=Object.keys(groupes).map(p=>(focusProvider?'':'<div class="modal-group">'+esc(groupes[p][0].label||p)+'</div>')+groupes[p].map(m=>'<div class="modal-opt '+(m===curModel?'on':'')+'" data-provider="'+esc(m.provider)+'" data-model="'+esc(m.model)+'">'+logoFor(m.provider)+'<div class="tx"><div class="nm">'+esc(m.model)+'</div></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-9"/></svg></div>').join('')).join('');
   modelList.querySelectorAll('.modal-opt').forEach(o=>o.addEventListener('click',()=>{
