@@ -164,6 +164,8 @@
     <div class="dock">
       <div class="composer">
         <div class="box">
+          <button class="ic" id="attach" title="Joindre un document" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.5 12.5 21a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10.5 19a2 2 0 0 1-3-3l8-8"></path></svg></button>
+          <input type="file" id="attachInput" accept=".txt,.md,.csv,.json,.log,text/plain" hidden>
           <textarea id="ta" rows="1" placeholder="Écrivez votre question…" disabled></textarea>
           <button class="send" id="send" disabled type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20V5M6 11l6-6 6 6"></path></svg></button>
         </div>
@@ -199,6 +201,8 @@ let MODELS=[],curModel=null,PROVIDERS=[];
 // Ordre de préférence par coût (les moins chers en tête) : le premier
 // fournisseur DISPONIBLE de cette liste devient le choix par défaut.
 const ORDRE_ECONOMIQUE=['mistral','gemini','chatgpt','claude'];
+const MODEL_KEY='noliae_ai_model_v1';
+function setCurModel(m){curModel=m;if(m){try{localStorage.setItem(MODEL_KEY,JSON.stringify({provider:m.provider,model:m.model}))}catch(_){}}}
 
 // L'historique vit en base (table conversations/messages, déjà écrite par
 // /v1/ia à chaque message) : cette liste n'est qu'un cache d'affichage de
@@ -234,7 +238,7 @@ function openModelModal(focusProvider){
   MODELS.forEach(m=>{(groupes[m.provider]=groupes[m.provider]||[]).push(m)});
   modelList.innerHTML=Object.keys(groupes).map(p=>'<div class="modal-group">'+esc(groupes[p][0].label||p)+'</div>'+groupes[p].map(m=>'<div class="modal-opt '+(m===curModel?'on':'')+'" data-provider="'+esc(m.provider)+'" data-model="'+esc(m.model)+'">'+logoFor(m.provider)+'<div class="tx"><div class="nm">'+esc(m.model)+'</div></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-9"/></svg></div>').join('')).join('');
   modelList.querySelectorAll('.modal-opt').forEach(o=>o.addEventListener('click',()=>{
-    curModel=MODELS.find(m=>m.provider===o.dataset.provider&&m.model===o.dataset.model)||curModel;
+    setCurModel(MODELS.find(m=>m.provider===o.dataset.provider&&m.model===o.dataset.model)||curModel);
     renderProviders();closeModelModal();
   }));
   modelVeil.hidden=false;
@@ -285,6 +289,24 @@ function renderMsg(role,html,provider){
   thread.appendChild(d);scroll.scrollTop=scroll.scrollHeight;return d.querySelector('.body')
 }
 
+const attachBtn=document.getElementById('attach'),attachInput=document.getElementById('attachInput');
+attachBtn.addEventListener('click',()=>attachInput.click());
+attachInput.addEventListener('change',async()=>{
+  const file=attachInput.files[0];attachInput.value='';
+  if(!file)return;
+  const foot=document.getElementById('foot');
+  const avant=foot.textContent;
+  foot.textContent='Envoi de « '+file.name+' »…';
+  try{
+    const content=await file.text();
+    if(!content.trim())throw new Error('Fichier vide.');
+    const r=await fetch(api+'/api/documents',{method:'POST',credentials:'include',headers:{'content-type':'application/json'},body:JSON.stringify({title:file.name,content})});
+    const data=await r.json().catch(()=>({}));
+    if(!r.ok)throw new Error(data.detail||'Envoi impossible.');
+    foot.textContent='« '+file.name+' » ajouté — le contexte sera utilisé dans vos prochains messages.';
+  }catch(e){foot.textContent=(e instanceof TypeError)?'La connexion à nos serveurs semble bloquée par une extension (bloqueur de publicités/traceurs).':(e.message||'Envoi du document impossible.')}
+  setTimeout(()=>{foot.textContent=avant},4000);
+});
 function autosize(){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,180)+'px'}
 ta.addEventListener('input',()=>{autosize();send.disabled=!ta.value.trim()||busy});
 ta.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();submit()}});
@@ -324,10 +346,12 @@ fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0
   MODELS=Array.isArray(data)?data:(Array.isArray(data.models)?data.models:[]);
   if(!MODELS.length)throw 0;
   calculerProviders();
+  let restaure=null;
+  try{const saved=JSON.parse(localStorage.getItem(MODEL_KEY)||'null');if(saved)restaure=MODELS.find(m=>m.provider===saved.provider&&m.model===saved.model)}catch(_){}
   const parEconomie=ORDRE_ECONOMIQUE.map(p=>PROVIDERS.find(m=>m.provider===p)).find(Boolean);
-  curModel=parEconomie||PROVIDERS[0];
+  setCurModel(restaure||parEconomie||PROVIDERS[0]);
   renderProviders();
-  ta.disabled=false;loadConvs();
+  ta.disabled=false;document.getElementById('attach').disabled=false;loadConvs();
 }).catch(()=>{ if(!MODELS.length){ goLogin(); } });
 })();
 </script>
