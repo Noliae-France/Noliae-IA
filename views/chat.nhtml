@@ -218,11 +218,15 @@ function setCurModel(m){curModel=m;if(m){try{localStorage.setItem(MODEL_KEY,JSON
 // /v1/ia à chaque message) : cette liste n'est qu'un cache d'affichage de
 // /v1/conversations, jamais la source de vérité.
 let chats=[],activeId=null,busy=false;
+const CONVS_KEY='noliae_ai_convs_v1';
+// Rejoue l'historique en cache instantanément (avant même la requête réseau)
+// pour éviter le clignotement « vide puis repeuplé » au refresh.
+try{const cached=JSON.parse(localStorage.getItem(CONVS_KEY)||'null');if(Array.isArray(cached)){chats=cached;renderConvs()}}catch(_){}
 async function loadConvs(){
   try{
     const r=await fetch(api+'/v1/conversations',{credentials:'include'});
-    chats=r.ok?await r.json():[];
-  }catch(_){chats=[]}
+    if(r.ok){chats=await r.json();try{localStorage.setItem(CONVS_KEY,JSON.stringify(chats))}catch(_){}}
+  }catch(_){}
   renderConvs();
 }
 
@@ -374,6 +378,22 @@ async function submit(){
   busy=false;send.disabled=!ta.value.trim();ta.focus()
 }
 
+const MODELS_KEY='noliae_ai_models_v1';
+// Idem pour les modèles : on affiche tout de suite les pastilles connues
+// (dernier catalogue vu) pendant que /v1/ia/models revalide en tâche de fond.
+try{
+  const cachedModels=JSON.parse(localStorage.getItem(MODELS_KEY)||'null');
+  if(Array.isArray(cachedModels)&&cachedModels.length){
+    MODELS=cachedModels;calculerProviders();
+    let restaure0=null;
+    try{const saved0=JSON.parse(localStorage.getItem(MODEL_KEY)||'null');if(saved0)restaure0=MODELS.find(m=>m.provider===saved0.provider&&m.model===saved0.model)}catch(_){}
+    const parEconomie0=ORDRE_ECONOMIQUE.map(p=>PROVIDERS.find(m=>m.provider===p)).find(Boolean);
+    setCurModel(restaure0||parEconomie0||PROVIDERS[0]);
+    renderProviders();
+    ta.disabled=false;document.getElementById('attach').disabled=false;
+  }
+}catch(_){}
+
 fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0;return r.json()}).then(user=>{
   document.getElementById('side-av').textContent=(user.name||user.email||'?').slice(0,2).toUpperCase();
   document.getElementById('side-name').textContent=user.name||user.email;
@@ -383,6 +403,7 @@ fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0
   const data=await r.json().catch(()=>[]);
   MODELS=Array.isArray(data)?data:(Array.isArray(data.models)?data.models:[]);
   if(!MODELS.length)throw 0;
+  try{localStorage.setItem(MODELS_KEY,JSON.stringify(MODELS))}catch(_){}
   calculerProviders();
   let restaure=null;
   try{const saved=JSON.parse(localStorage.getItem(MODEL_KEY)||'null');if(saved)restaure=MODELS.find(m=>m.provider===saved.provider&&m.model===saved.model)}catch(_){}
