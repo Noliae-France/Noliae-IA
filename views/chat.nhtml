@@ -239,15 +239,20 @@ function renderProviders(){
 
 const modelVeil=document.getElementById('modelModalVeil'),modelList=document.getElementById('modelModalList');
 function openModelModal(focusProvider){
+  // Depuis une pastille précise, on ne montre QUE les modèles de ce
+  // fournisseur (choisir ChatGPT ne doit jamais faire apparaître Mistral) ;
+  // sans fournisseur ciblé, tous les fournisseurs restent groupés.
+  const source=focusProvider?MODELS.filter(m=>m.provider===focusProvider):MODELS;
   const groupes={};
-  MODELS.forEach(m=>{(groupes[m.provider]=groupes[m.provider]||[]).push(m)});
-  modelList.innerHTML=Object.keys(groupes).map(p=>'<div class="modal-group">'+esc(groupes[p][0].label||p)+'</div>'+groupes[p].map(m=>'<div class="modal-opt '+(m===curModel?'on':'')+'" data-provider="'+esc(m.provider)+'" data-model="'+esc(m.model)+'">'+logoFor(m.provider)+'<div class="tx"><div class="nm">'+esc(m.model)+'</div></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-9"/></svg></div>').join('')).join('');
+  source.forEach(m=>{(groupes[m.provider]=groupes[m.provider]||[]).push(m)});
+  const titre=document.querySelector('.modal header h2');
+  titre.textContent=focusProvider?('Choisir un modèle · '+(groupes[focusProvider]&&(groupes[focusProvider][0].label||focusProvider))):'Choisir un modèle';
+  modelList.innerHTML=Object.keys(groupes).map(p=>(focusProvider?'':'<div class="modal-group">'+esc(groupes[p][0].label||p)+'</div>')+groupes[p].map(m=>'<div class="modal-opt '+(m===curModel?'on':'')+'" data-provider="'+esc(m.provider)+'" data-model="'+esc(m.model)+'">'+logoFor(m.provider)+'<div class="tx"><div class="nm">'+esc(m.model)+'</div></div><svg class="ck" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M5 12l5 5 9-9"/></svg></div>').join('')).join('');
   modelList.querySelectorAll('.modal-opt').forEach(o=>o.addEventListener('click',()=>{
     setCurModel(MODELS.find(m=>m.provider===o.dataset.provider&&m.model===o.dataset.model)||curModel);
     renderProviders();closeModelModal();
   }));
   modelVeil.hidden=false;
-  if(focusProvider){const first=modelList.querySelector('[data-provider="'+focusProvider+'"]');if(first)first.scrollIntoView({block:'center'})}
 }
 function closeModelModal(){modelVeil.hidden=true}
 document.getElementById('modelModalClose').addEventListener('click',closeModelModal);
