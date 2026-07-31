@@ -167,6 +167,16 @@
     .share-cta a{color:var(--pulse);font-weight:600;text-decoration:none;white-space:nowrap}
     .notice{color:var(--pulse)}
     @@media(max-width:760px){.app{grid-template-columns:0 1fr}.side{border-right:0}}
+    @@media(max-width:480px){
+      .top{gap:6px;padding:0 10px}
+      .cur-model span{display:none}
+      .share-btn{padding:7px 10px}
+      .share-btn span{display:none}
+      .share-pop{right:8px;left:8px;width:auto}
+      .stage{padding:0 12px}
+      .composer{padding:0 2px}
+      .dock{padding:4px 10px 10px}
+    }
   </style>
 </head>
 <body>
