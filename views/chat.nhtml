@@ -55,7 +55,7 @@
     .cur-model .logo{width:17px;height:17px}
     .logo{width:19px;height:19px;flex-shrink:0;display:block;border-radius:5px}
     .providers{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px;margin-top:9px}
-    .provider{display:flex;align-items:center;gap:6px;padding:6px 8px 6px 10px;border:1px solid var(--line);border-radius:100px;font-size:12px;font-weight:500;background:#fff;color:#57534e;opacity:.75;transition:border-color var(--t),color var(--t),background var(--t),opacity var(--t)}
+    .provider{display:flex;align-items:center;gap:5px;padding:4px 7px 4px 8px;border:1px solid var(--line);border-radius:100px;font-size:11px;font-weight:500;background:#fff;color:#57534e;opacity:.75;transition:border-color var(--t),color var(--t),background var(--t),opacity var(--t)}
     .provider span{color:inherit}
     .provider:hover{border-color:var(--ash);color:var(--ink);opacity:1}
     .provider.on{border-color:var(--ink);background:#111;color:#fff;opacity:1;font-weight:600}
@@ -110,20 +110,20 @@
     .dots i{width:6px;height:6px;border-radius:50%;background:var(--ash);animation:bl 1.2s infinite}
     .dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
     @@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
-    .dock{flex-shrink:0;padding:10px 24px 20px;background:linear-gradient(to top,var(--paper) 66%,transparent)}
+    .dock{flex-shrink:0;padding:8px 20px 14px;background:linear-gradient(to top,var(--paper) 66%,transparent)}
     .composer{width:100%;max-width:720px;margin:0 auto}
-    .box{display:flex;align-items:flex-end;gap:8px;background:var(--paper-2);border:1px solid var(--line);border-radius:16px;padding:8px 8px 8px 14px;box-shadow:0 1px 3px rgba(0,0,0,.03);transition:border-color var(--t),box-shadow var(--t)}
+    .box{display:flex;align-items:flex-end;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:14px;padding:5px 5px 5px 12px;box-shadow:0 1px 3px rgba(0,0,0,.03);transition:border-color var(--t),box-shadow var(--t)}
     .box:focus-within{border-color:var(--ash);box-shadow:0 4px 16px rgba(0,0,0,.06)}
-    .box .ic{width:34px;height:34px;padding:0;border-radius:10px;display:grid;place-items:center;color:var(--ash);flex-shrink:0;transition:background var(--t),color var(--t)}
+    .box .ic{width:28px;height:28px;padding:0;border-radius:8px;display:grid;place-items:center;color:var(--ash);flex-shrink:0;transition:background var(--t),color var(--t)}
     .box .ic:hover{background:var(--bubble);color:var(--muted)}
-    .box .ic svg{width:18px;height:18px;display:block}
-    textarea{flex:1;resize:none;border:0;outline:0;background:none;font-size:15px;font-family:var(--sans);line-height:1.5;padding:8px 2px;max-height:180px;color:var(--ink);color-scheme:light;-webkit-text-fill-color:var(--ink)}
+    .box .ic svg{width:15px;height:15px;display:block}
+    textarea{flex:1;resize:none;border:0;outline:0;background:none;font-size:14px;font-family:var(--sans);line-height:1.45;padding:6px 2px;max-height:140px;color:var(--ink);color-scheme:light;-webkit-text-fill-color:var(--ink)}
     textarea::placeholder{color:var(--ash)}
-    .send{width:36px;height:36px;padding:0;border-radius:11px;background:var(--ink);color:#fff;display:grid;place-items:center;flex-shrink:0;transition:opacity var(--t),transform var(--t),background var(--t)}
+    .send{width:30px;height:30px;padding:0;border-radius:9px;background:var(--ink);color:#fff;display:grid;place-items:center;flex-shrink:0;transition:opacity var(--t),transform var(--t),background var(--t)}
     .send:disabled{background:var(--line);color:var(--ash);cursor:default}
     .send:not(:disabled):hover{transform:scale(1.05)}
-    .send svg{width:18px;height:18px;display:block}
-    .foot{text-align:center;font-size:11px;color:var(--ash);margin-top:9px}
+    .send svg{width:16px;height:16px;display:block}
+    .foot{text-align:center;font-size:10.5px;color:var(--ash);margin-top:6px}
     .notice{color:var(--pulse)}
     @@media(max-width:760px){.app{grid-template-columns:0 1fr}.side{border-right:0}}
   </style>
