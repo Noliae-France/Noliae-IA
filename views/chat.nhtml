@@ -112,9 +112,8 @@
     @@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
     .dock{flex-shrink:0;padding:8px 20px 14px;background:linear-gradient(to top,var(--paper) 66%,transparent)}
     .composer{width:100%;max-width:720px;margin:0 auto}
-    .box{display:flex;align-items:center;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:5px 5px 5px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:border-color var(--t),box-shadow var(--t)}
-    .box:focus-within{border-color:var(--ash)}
-    .box:focus-within{border-color:var(--ash);box-shadow:0 4px 16px rgba(0,0,0,.06)}
+    .box{display:flex;align-items:center;gap:6px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:5px 9px 5px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:border-color var(--t),box-shadow var(--t)}
+    .box:focus-within{border-color:var(--line);box-shadow:0 4px 16px rgba(0,0,0,.06)}
     .box .ic{width:28px;height:28px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--ash);flex-shrink:0;transition:background var(--t),color var(--t)}
     .box .ic:hover{background:var(--bubble);color:var(--muted)}
     .box .ic:hover{background:var(--bubble);color:var(--muted)}
