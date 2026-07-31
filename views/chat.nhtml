@@ -244,11 +244,16 @@ const logoFor=provider=>LOGOS[provider]||DEFAULT_LOGO;
 // Lien de partage public (/chat/<uuid>?public=1) : lecture seule, AUCUNE
 // authentification requise. Court-circuite tout le reste du bootstrap
 // (sidebar/composer/modèles), qui n'a pas de sens pour un visiteur anonyme.
+// Déclaré ICI (et non plus bas comme avant) : renderMsg() ferme sur ces
+// const, et le mode partage public retourne avant d'atteindre l'ancienne
+// déclaration — les laisser plus bas les rendait inaccessibles (TDZ),
+// renderMsg levait alors une ReferenceError silencieusement avalée par le
+// .catch() du fetch, d'où un lien de partage qui semblait "ne plus exister".
+const thread=document.getElementById('thread'),empty=document.getElementById('empty'),scroll=document.getElementById('scroll'),ta=document.getElementById('ta'),send=document.getElementById('send');
 if(new URLSearchParams(location.search).get('public')==='1'){
   const m=/^\/chat\/([^/]+)$/.exec(location.pathname);
   document.getElementById('app').classList.add('collapsed');
-  document.getElementById('empty').style.display='none';
-  const thread=document.getElementById('thread'),scroll=document.getElementById('scroll');
+  empty.style.display='none';
   thread.style.display='';
   document.querySelector('.dock').innerHTML='<div class="composer"><div class="share-cta"><span>Vous consultez une conversation partagée en lecture seule.</span><a href="'+login+'/?return_to='+encodeURIComponent(location.origin)+'">Essayer Noliae IA →</a></div></div>';
   if(m){
@@ -346,7 +351,6 @@ async function delChat(id){
   try{await fetch(api+'/v1/conversations/'+encodeURIComponent(id),{method:'DELETE',credentials:'include'})}catch(_){}
 }
 
-const thread=document.getElementById('thread'),empty=document.getElementById('empty'),scroll=document.getElementById('scroll'),ta=document.getElementById('ta'),send=document.getElementById('send');
 // Chaque conversation vit à sa propre URL (/chat/<uuid>), et « nouvelle
 // discussion » à /chat/new — sans ça, un refresh ou un lien partagé
 // ramène toujours à la racine au lieu de rouvrir la bonne conversation.
