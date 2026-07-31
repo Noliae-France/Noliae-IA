@@ -54,9 +54,10 @@
     .cur-model{display:flex;align-items:center;gap:7px;font-size:13px;font-weight:500;color:var(--muted)}
     .cur-model .logo{width:17px;height:17px}
     .logo{width:19px;height:19px;flex-shrink:0;display:block;border-radius:5px}
-    .bar-tools{display:flex;align-items:center;gap:6px;margin:8px 4px 0;flex-wrap:wrap}
+    .composer-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:8px}
+    .tools-left{display:flex;align-items:center;gap:6px;flex-wrap:wrap;min-width:0}
     .providers{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-    .providers .prov{display:flex;align-items:center;gap:5px;padding:5px 10px;border:1px solid var(--line);border-radius:100px;font-size:11.5px;font-weight:500;background:var(--paper-2);color:#57534e;transition:border-color var(--t),color var(--t),background var(--t)}
+    .providers .prov{display:flex;align-items:center;gap:5px;height:28px;padding:0 10px;border:1px solid var(--line);border-radius:100px;font-size:11.5px;font-weight:500;background:var(--paper);color:#57534e;transition:border-color var(--t),color var(--t),background var(--t)}
     .providers .prov:hover{border-color:var(--ash);color:var(--ink)}
     .providers .prov.on{border-color:var(--pulse);color:var(--ink);background:#FFF4F1}
     .providers .prov .logo{width:14px;height:14px}
@@ -102,16 +103,16 @@
     .msg .body{padding-top:2px;line-height:1.62;flex:1;min-width:0;color:var(--carbon)}
     .msg .body,.msg .body *{color:var(--carbon)!important;text-decoration:none!important}
     .msg .body :not(pre):not(code):not(.dots i):not(.who){background:none!important}
-    .msg .body pre,.msg .body pre *,.msg .body code{background:var(--bubble)!important}
+    .msg .body code{background:var(--bubble)!important}
     .msg .body .dots i{background:var(--ash)!important}
     .msg.u .body,.msg.u .body *{color:var(--ink)!important}
     .msg .body p{margin:0 0 10px}.msg .body p:last-child{margin:0}
     .msg .body ul,.msg .body ol{margin:0 0 10px;padding-left:20px}
     .msg .body li{margin:3px 0}
     .msg .body code{font-family:var(--mono);font-size:.86em;background:var(--bubble);padding:1px 5px;border-radius:4px}
-    .msg .body pre{position:relative;background:#1E1E1C;border:1px solid var(--line);border-radius:8px;padding:14px 14px 12px;overflow-x:auto;margin:0 0 10px}
+    .msg .body pre{position:relative;background:#1E1E1C!important;border:1px solid var(--line);border-radius:8px;padding:14px 14px 12px;overflow-x:auto;margin:0 0 10px}
     .msg .body pre code{background:none!important;padding:0;font-size:12.5px;line-height:1.6;color:#E8E6E1!important}
-    .msg .body .code-lang{position:absolute;top:0;right:0;padding:3px 10px;font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#9A968D;background:rgba(255,255,255,.06);border-radius:0 8px 0 8px}
+    .msg .body .code-lang{position:absolute;top:0;right:0;padding:3px 10px;font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:#9A968D!important;background:rgba(255,255,255,.08)!important;border-radius:0 8px 0 8px}
     .msg .body .tok-kw{color:#FF8B6B!important;font-weight:500}
     .msg .body .tok-str{color:#9FD68C!important}
     .msg .body .tok-cm{color:#8A8680!important;font-style:italic}
@@ -124,15 +125,14 @@
     @@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
     .dock{flex-shrink:0;padding:8px 20px 14px;background:linear-gradient(to top,var(--paper) 66%,transparent)}
     .composer{width:100%;max-width:720px;margin:0 auto}
-    .composer-box{display:flex;align-items:center;gap:8px;background:var(--paper-2);border:1px solid var(--line);border-radius:999px;padding:6px 16px 6px 14px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:border-color var(--t),box-shadow var(--t)}
-    .composer-box:focus-within{border-color:var(--line);box-shadow:0 4px 16px rgba(0,0,0,.06)}
-    .bar-tools .ic{width:24px;height:24px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--ash);flex-shrink:0;transition:background var(--t),color var(--t)}
-    .bar-tools .ic:hover{background:var(--bubble);color:var(--muted)}
-    .bar-tools .ic svg{width:14px;height:14px;display:block}
-    textarea{flex:1;resize:none;border:0;outline:0;background:none;font-size:14px;font-family:var(--sans);line-height:1.4;padding:2px 6px;max-height:120px;color:var(--ink);color-scheme:light;-webkit-text-fill-color:var(--ink)}
+    .composer-card{background:var(--paper-2);border:1px solid var(--line);border-radius:22px;padding:13px 14px 10px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:border-color var(--t),box-shadow var(--t)}
+    .composer-card:focus-within{border-color:var(--ash);box-shadow:0 6px 20px rgba(0,0,0,.07)}
+    .tools-left .ic{width:28px;height:28px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--ash);flex-shrink:0;transition:background var(--t),color var(--t)}
+    .tools-left .ic:hover{background:var(--bubble);color:var(--muted)}
+    .tools-left .ic svg{width:15px;height:15px;display:block}
+    textarea{width:100%;display:block;resize:none;border:0;outline:0;background:none;font-size:14.5px;font-family:var(--sans);line-height:1.45;padding:1px 2px 8px;max-height:120px;color:var(--ink);color-scheme:light;-webkit-text-fill-color:var(--ink)}
     textarea::placeholder{color:var(--ash)}
-    textarea::placeholder{color:var(--ash)}
-    .composer-box .send{width:30px;height:30px;padding:0;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;flex-shrink:0;transition:opacity var(--t),transform var(--t),background var(--t)}
+    .composer-toolbar .send{width:30px;height:30px;padding:0;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;flex-shrink:0;transition:opacity var(--t),transform var(--t),background var(--t)}
     .send:not(:disabled):hover{background:var(--pulse)}
     .send:disabled{background:var(--line);color:var(--ash);cursor:default}
     .send:not(:disabled):hover{transform:scale(1.05)}
@@ -178,14 +178,16 @@
 
     <div class="dock">
       <div class="composer">
-        <div class="composer-box">
+        <div class="composer-card">
           <textarea id="ta" rows="1" placeholder="Écrivez votre question…" disabled></textarea>
-          <button class="send" id="send" disabled type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20V5M6 11l6-6 6 6"></path></svg></button>
-        </div>
-        <div class="bar-tools">
-          <button class="ic" id="attach" title="Joindre un document" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.5 12.5 21a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10.5 19a2 2 0 0 1-3-3l8-8"></path></svg></button>
-          <input type="file" id="attachInput" accept=".txt,.md,.csv,.json,.log,text/plain" hidden>
-          <div class="providers" id="providers"></div>
+          <div class="composer-toolbar">
+            <div class="tools-left">
+              <button class="ic" id="attach" title="Joindre un document" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 12.5 12.5 21a5 5 0 0 1-7-7l8.5-8.5a3.5 3.5 0 0 1 5 5L10.5 19a2 2 0 0 1-3-3l8-8"></path></svg></button>
+              <input type="file" id="attachInput" accept=".txt,.md,.csv,.json,.log,text/plain" hidden>
+              <div class="providers" id="providers"></div>
+            </div>
+            <button class="send" id="send" disabled type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 20V5M6 11l6-6 6 6"></path></svg></button>
+          </div>
         </div>
         <div class="foot" id="foot">Noliae AI peut se tromper · vérifiez les informations importantes.</div>
       </div>
