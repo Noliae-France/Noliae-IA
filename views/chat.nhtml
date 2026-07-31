@@ -61,7 +61,7 @@
     .providers .prov.on{border-color:var(--pulse);color:var(--ink);background:#FFF4F1}
     .providers .prov .logo{width:14px;height:14px}
     .providers .prov .cv{width:11px;height:11px;color:var(--ash)}
-    .ia-modal-veil{position:fixed;inset:0;background:rgba(17,17,17,.4);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
+    .ia-modal-veil{position:fixed;inset:0;background:rgba(17,17,17,.4);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;z-index:100;padding:24px}
     .ia-modal{width:100%;max-width:420px;max-height:80vh;background:var(--paper-2);border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.25);display:flex;flex-direction:column;overflow:hidden}
     .ia-modal header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--line);flex-shrink:0}
     .ia-modal header h2{font-size:15px;font-weight:600;margin:0}
@@ -100,6 +100,9 @@
     .msg.u .body p{margin:0 0 6px}.msg.u .body p:last-child{margin:0}
     .msg .ava .logo{width:26px;height:26px;border-radius:7px}
     .msg .body{padding-top:2px;line-height:1.62;flex:1;min-width:0;color:var(--carbon)}
+    .msg .body,.msg .body *{color:var(--carbon)!important;background:none!important;text-decoration:none!important}
+    .msg .body pre,.msg .body pre *,.msg .body code{background:var(--bubble)!important}
+    .msg.u .body,.msg.u .body *{color:var(--ink)!important}
     .msg .body p{margin:0 0 10px}.msg .body p:last-child{margin:0}
     .msg .body ul,.msg .body ol{margin:0 0 10px;padding-left:20px}
     .msg .body li{margin:3px 0}
