@@ -77,7 +77,7 @@
     .modal-opt .ck{width:16px;height:16px;color:var(--ink);opacity:0;flex-shrink:0}
     .modal-opt.on .ck{opacity:1}
     .scroll{flex:1;overflow-y:auto}
-    .stage{width:100%;max-width:720px;margin:0 auto;padding:0 24px;min-height:100%;display:flex;flex-direction:column}
+    .stage{width:100%;max-width:920px;margin:0 auto;padding:0 24px;min-height:100%;display:flex;flex-direction:column}
     .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding-bottom:8vh}
     .empty .mark{filter:drop-shadow(0 4px 10px rgba(0,0,0,.08));animation:float 4.5s var(--ease) infinite}
     .empty .mark .wave{gap:4px}
@@ -124,7 +124,7 @@
     .dots i:nth-child(2){animation-delay:.2s}.dots i:nth-child(3){animation-delay:.4s}
     @@keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
     .dock{flex-shrink:0;padding:4px 20px 10px;background:linear-gradient(to top,var(--paper) 66%,transparent)}
-    .composer{width:100%;max-width:720px;margin:0 auto}
+    .composer{width:100%;max-width:920px;margin:0 auto}
     .composer-card{background:var(--paper-2);border:1px solid var(--line);border-radius:18px;padding:6px 10px 5px;box-shadow:0 1px 3px rgba(0,0,0,.04);transition:border-color var(--t),box-shadow var(--t)}
     .composer-card:focus-within{border-color:var(--ash);box-shadow:0 6px 20px rgba(0,0,0,.07)}
     .tools-left .ic{width:22px;height:22px;padding:0;border-radius:50%;display:grid;place-items:center;color:var(--ash);flex-shrink:0;transition:background var(--t),color var(--t)}
