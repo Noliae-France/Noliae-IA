@@ -290,6 +290,20 @@ async function openChat(id){
 
 function esc(s){return String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 function escAttr(s){return esc(s).replace(/"/g,'&quot;')}
+// Pas de vrai streaming (le client HTTP ne lit pas les réponses en flux) :
+// on simule la frappe en révélant le texte final progressivement, avec un
+// pas adapté à la longueur pour que ça reste rapide sur une longue réponse.
+function machineAEcrire(el,who,fullText){
+  const pas=Math.max(1,Math.ceil(fullText.length/120));
+  let i=0;
+  const tick=()=>{
+    i=Math.min(fullText.length,i+pas);
+    el.innerHTML='<div class="who">'+esc(who)+'</div>'+md(fullText.slice(0,i));
+    scroll.scrollTop=scroll.scrollHeight;
+    if(i<fullText.length)requestAnimationFrame(tick)
+  };
+  requestAnimationFrame(tick);
+}
 function md(s){s=esc(s);s=s.replace(/```([\s\S]*?)```/g,(m,c)=>'<pre><code>'+c.replace(/^\n/,'')+'</code></pre>');s=s.replace(/`([^`]+)`/g,'<code>$1</code>');s=s.replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>');const lines=s.split('\n');let out='',list=null;for(let ln of lines){if(/^\s*[-*]\s+/.test(ln)){if(list!=='ul'){out+='<ul>';list='ul'}out+='<li>'+ln.replace(/^\s*[-*]\s+/,'')+'</li>'}else if(/^\s*\d+\.\s+/.test(ln)){if(list!=='ol'){out+='<ol>';list='ol'}out+='<li>'+ln.replace(/^\s*\d+\.\s+/,'')+'</li>'}else{if(list){out+=list==='ul'?'</ul>':'</ol>';list=null}if(ln.trim())out+='<p>'+ln+'</p>'}}if(list)out+=list==='ul'?'</ul>':'</ol>';return out}
 function renderMsg(role,html,provider,model){
   const d=document.createElement('div');d.className='msg '+(role==='user'?'u':'a');
@@ -338,7 +352,7 @@ async function submit(){
     const data=await r.json().catch(()=>({}));
     if(!r.ok)throw data;
     activeId=data.conversation_id||activeId;
-    body.innerHTML='<div class="who">'+esc(curModel.model||curModel.label||curModel.provider)+'</div>'+md(data.answer||'Aucune réponse reçue.');
+    machineAEcrire(body,curModel.model||curModel.label||curModel.provider,data.answer||'Aucune réponse reçue.');
     // Nouvelle conversation ou historique désynchronisé : on relit la liste
     // côté serveur plutôt que de deviner le titre/tri localement.
     await loadConvs();
