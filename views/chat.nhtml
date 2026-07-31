@@ -265,5 +265,6 @@ fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0
   curModel=MODELS[0];renderPicker();
   ta.disabled=false;renderConvs();
 }).catch(()=>{ if(!MODELS.length){ goLogin(); } });
+})();
 </script>
 </body></html>
