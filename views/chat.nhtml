@@ -302,10 +302,14 @@ async function delChat(id){
 }
 
 const thread=document.getElementById('thread'),empty=document.getElementById('empty'),scroll=document.getElementById('scroll'),ta=document.getElementById('ta'),send=document.getElementById('send');
-function newChat(){activeId=null;thread.innerHTML='';thread.style.display='none';empty.style.display='';ta.value='';autosize();send.disabled=true;renderConvs()}
-document.getElementById('newChat').addEventListener('click',newChat);
-async function openChat(id){
+// Chaque conversation vit à sa propre URL (/chat/<uuid>), et « nouvelle
+// discussion » à /chat/new — sans ça, un refresh ou un lien partagé
+// ramène toujours à la racine au lieu de rouvrir la bonne conversation.
+function newChat(push){activeId=null;thread.innerHTML='';thread.style.display='none';empty.style.display='';ta.value='';autosize();send.disabled=true;renderConvs();if(push!==false&&location.pathname!=='/chat/new')history.pushState({chat:null},'','/chat/new')}
+document.getElementById('newChat').addEventListener('click',()=>newChat());
+async function openChat(id,push){
   activeId=id;empty.style.display='none';thread.style.display='';thread.innerHTML='';renderConvs();
+  if(push!==false&&location.pathname!=='/chat/'+id)history.pushState({chat:id},'','/chat/'+encodeURIComponent(id));
   const ch=chats.find(c=>String(c.id)===String(id));
   if(ch){const m=PROVIDERS.find(p=>p.provider===ch.provider);if(m){curModel=MODELS.find(x=>x.provider===ch.provider&&x.model===ch.model)||m;renderProviders()}}
   try{
@@ -315,6 +319,10 @@ async function openChat(id){
   }catch(_){}
   scroll.scrollTop=scroll.scrollHeight;
 }
+window.addEventListener('popstate',e=>{
+  const id=e.state&&e.state.chat;
+  if(id)openChat(id,false);else newChat(false);
+});
 
 function esc(s){return String(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))}
 function escAttr(s){return esc(s).replace(/"/g,'&quot;')}
@@ -420,6 +428,7 @@ async function submit(){
     const data=await r.json().catch(()=>({}));
     if(!r.ok)throw data;
     activeId=data.conversation_id||activeId;
+    if(isNew&&activeId)history.replaceState({chat:activeId},'','/chat/'+encodeURIComponent(activeId));
     machineAEcrire(body,curModel.model||curModel.label||curModel.provider,data.answer||'Aucune réponse reçue.');
     // Nouvelle conversation ou historique désynchronisé : on relit la liste
     // côté serveur plutôt que de deviner le titre/tri localement.
@@ -461,7 +470,14 @@ fetch(api+'/v1/user/me',{credentials:'include'}).then(async r=>{if(!r.ok)throw 0
   const parEconomie=ORDRE_ECONOMIQUE.map(p=>PROVIDERS.find(m=>m.provider===p)).find(Boolean);
   setCurModel(restaure||parEconomie||PROVIDERS[0]);
   renderProviders();
-  ta.disabled=false;document.getElementById('attach').disabled=false;loadConvs();
+  ta.disabled=false;document.getElementById('attach').disabled=false;
+  loadConvs().then(()=>{
+    // Ouvre directement la conversation de l'URL (/chat/<uuid>) au chargement —
+    // sinon un refresh ou un lien partagé retombe toujours sur l'accueil.
+    const m=/^\/chat\/([^/]+)$/.exec(location.pathname);
+    if(m&&m[1]!=='new')openChat(m[1],false);
+    history.replaceState({chat:(m&&m[1]!=='new')?m[1]:null},'',location.pathname);
+  });
 }).catch(()=>{ if(!MODELS.length){ goLogin(); } });
 })();
 </script>
